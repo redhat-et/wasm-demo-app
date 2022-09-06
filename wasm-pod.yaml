@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pod-with-wasm-workload
+  annotations:
+    module.wasm.image/variant: compat
+spec:
+  containers:
+  - name: wasm-demo-app
+    image: quay.io/ifont/wasm-demo-app
+    imagePullPolicy: Always
