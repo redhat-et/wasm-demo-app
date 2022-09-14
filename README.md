@@ -116,7 +116,7 @@ running:
 ### Install MicroShift
 
 Follow the below instructions directly from the MicroShift website:
-1. [Depoy
+1. [Install and deploy
    MicroShift](https://microshift.io/docs/getting-started/#deploying-microshift)
 1. [Install the OpenShift and/or kubectl clients](https://microshift.io/docs/getting-started/#install-clients)
 1. [Copy
