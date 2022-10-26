@@ -189,10 +189,49 @@ wasmtime ./target/wasm32-wasi/debug/wasm-demo-app.wasm
 
 ### Using `crun`
 
-You can use `crun` and a `config.json` to execute your container manually:
+You can use `crun` and a `config.json` to execute your container manually.
+
+First we need to create a directory that will house the container archive and
+extract the container image into it:
 
 ```shell
-crun run wasm-demo-app-container
+mkdir container-archive
+cd ./container-archive/
+mkdir rootfs
+podman export $(podman create <registry>/<repo>/wasm-demo-app) | tar -C rootfs -xvf -
+```
+
+Then you'll need to generate and modify a `config.json` container spec:
+
+```shell
+crun spec
+sed -i 's|"sh"|"/wasm-demo-app.wasm"|' config.json
+sed -i 's/"terminal": true/"terminal": false/' config.json
+sed -i '/"linux": {/i \\t"annotations": {\n\t\t"module.wasm.image/variant": "compat"\n\t},' config.json 
+```
+
+Then you can run the container with:
+
+```shell
+crun run wasm-demo-app
+```
+
+Additionally, you can use the container lifecycle operations:
+
+```shell
+crun create wasm-demo-app
+
+# View the container is created and in the "created" state.
+crun list
+
+# Start the process inside the container.
+crun start wasm-demo-app
+
+# After 5 seconds view that the container has exited and is now in the stopped state.
+crun list
+
+# Now delete the container.
+crun delete wasm-demo-app
 ```
 
 ### Using `podman`
