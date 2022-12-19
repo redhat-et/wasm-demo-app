@@ -3,7 +3,7 @@ kind: Pod
 metadata:
   name: pod-with-wasm-workload
   annotations:
-    module.wasm.image/variant: compat
+    run.oci.handler: wasmtime
 spec:
   containers:
   - name: wasm-demo-app

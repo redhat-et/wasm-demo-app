@@ -66,15 +66,18 @@ baremetal.
 
 1. You'll need to enable both of these copr repos:
     ```shell
-    sudo dnf copr enable -y copr.fedorainfracloud.org/lsm5/wasmtime
-    sudo dnf copr enable -y copr.fedorainfracloud.org/rhcontainerbot/playground
+    sudo dnf copr enable -y copr.fedorainfracloud.org/rhcontainerbot/podman-next
     ```
 
-1. Then install `crun` to get both `crun` built with `wasmtime` support and the
+1. Then install `crun` and `wasmtime-c-api` to get both `crun` built with `wasmtime` support and the
    `wasmtime-c-api` package that contains the `libwastime.so` wasmtime C shared
    library:
     ```shell
-    sudo dnf install -y crun
+    sudo dnf install -y crun wasmtime-c-api
+    ```
+1. Verify a `crun` is installed that enables support for `wasmtime`:
+    ```shell
+    crun --version | grep wasmtime
     ```
 
 **NOTE**: Currently the way to do this is via copr repositories until we have
@@ -160,7 +163,7 @@ this wasm demo app workload using the below instruction.
 ### Build Container Image
 
 ```shell
-buildah build --annotation "module.wasm.image/variant=compat" -t <registry>/<repo>/wasm-demo-app .
+buildah build --annotation "run.oci.handler=wasmtime" -t <registry>/<repo>/wasm-demo-app .
 ```
 
 ### Push Container Image
@@ -207,7 +210,7 @@ Then you'll need to generate and modify a `config.json` container spec:
 crun spec
 sed -i 's|"sh"|"/wasm-demo-app.wasm"|' config.json
 sed -i 's/"terminal": true/"terminal": false/' config.json
-sed -i '/"linux": {/i \\t"annotations": {\n\t\t"module.wasm.image/variant": "compat"\n\t},' config.json 
+sed -i '/"linux": {/i \\t"annotations": {\n\t\t"run.oci.handler": "wasmtime"\n\t},' config.json
 ```
 
 Then you can run the container with:
