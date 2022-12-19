@@ -15,10 +15,10 @@ crio, MicroShift or all of the above. So you may want to look at the
 deployment options below in [Run WASM App](#run-wasm-app) to determine which
 dependencies you should install.
 
-### Install Fedora 35
-First you'll need a Fedora 35 installation on a VM or baremetal system. For
+### Install Fedora 36
+First you'll need a Fedora 36 installation on a VM or baremetal system. For
 easy setup, this repo contains a [Vagrantfile](Vagrantfile) to be used for creating
-a Fedora 35 virtual machine quickly and easily.
+a Fedora 36 virtual machine quickly and easily.
 1. Install vagrant on your host e.g. Fedora:
     ```shell
     sudo dnf install vagrant
@@ -56,7 +56,7 @@ curl https://wasmtime.dev/install.sh -sSf | bash
 
 ### Install and run `crun` with the `wasmtime` C shared library
 
-The following steps should be executed on your Fedora 35 installation VM or
+The following steps should be executed on your Fedora 36 installation VM or
 baremetal.
 
 1. If using `vagrant` simply run:
@@ -98,7 +98,7 @@ sudo dnf install -y podman buildah
 1. Execute the following commands to install cri-o and verify it is enabled and
 running:
     ```shell
-    sudo dnf module enable -y cri-o:1.22
+    sudo dnf module enable -y cri-o:1.21
     sudo dnf install -y cri-o cri-tools
     sudo systemctl enable crio --now
     sudo systemctl status crio
@@ -118,9 +118,27 @@ running:
 
 ### Install MicroShift
 
-Follow the below instructions directly from the MicroShift website:
-1. [Install and deploy
-   MicroShift](https://microshift.io/docs/getting-started/#deploying-microshift)
+Follow the below instructions to install MicroShift:
+1. Install and deploy MicroShift. For this step, normally you would be able to
+   follow the instructions directly from the [MicroShift
+   website](https://microshift.io/docs/getting-started/#deploying-microshift),
+   but the F36 MicroShift package is currently broken (see issues
+   [#908](https://github.com/openshift/microshift/issues/908) and
+   [#1061](https://github.com/openshift/microshift/issues/1061). So instead, we
+   will replace the download URL to use the F35 package, which as of this
+   writing is still working.
+    ```shell
+    sudo dnf copr enable -y @redhat-et/microshift
+    # Next command replaces the MicroShift download URL to use the F35 package instead.
+    sudo sed -i 's/$releasever/35/' /etc/yum.repos.d/_copr\:copr.fedorainfracloud.org\:group_redhat-et\:microshift.repo
+    sudo dnf install -y microshift
+    sudo firewall-cmd --zone=trusted --add-source=10.42.0.0/16 --permanent
+    sudo firewall-cmd --zone=public --add-port=80/tcp --permanent
+    sudo firewall-cmd --zone=public --add-port=443/tcp --permanent
+    sudo firewall-cmd --zone=public --add-port=5353/udp --permanent
+    sudo firewall-cmd --reload
+    sudo systemctl enable microshift --now
+    ```
 1. [Install the OpenShift and/or kubectl clients](https://microshift.io/docs/getting-started/#install-clients)
 1. [Copy
    Kubeconfig](https://microshift.io/docs/getting-started/#copy-kubeconfig)
@@ -270,8 +288,8 @@ If you used `vagrant` to create your MicroShift cluster, then copy over the
 
 ```shell
 mkdir ~/.kube
-vagrant ssh-config --host f35 > ssh_config
-scp -F ssh_config f35:.kube/config ~/.kube/config
+vagrant ssh-config --host f36 > ssh_config
+scp -F ssh_config f36:.kube/config ~/.kube/config
 ```
 ##### SSH Port Forwarding
 If you used `vagrant` to create your MicroShift cluster, then forward port
@@ -279,7 +297,7 @@ If you used `vagrant` to create your MicroShift cluster, then forward port
 
 ```shell
 MICROSHIFT_HOST_IP_ADDR=$(awk '/HostName/ {print $2}' ssh_config)
-ssh -F ssh_config -L 6443:${MICROSHIFT_HOST_IP_ADDR}:6443 f35
+ssh -F ssh_config -L 6443:${MICROSHIFT_HOST_IP_ADDR}:6443 f36
 ```
 
 ##### Test `oc` command from your development system
