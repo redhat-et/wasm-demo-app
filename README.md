@@ -152,8 +152,8 @@ Follow the below instructions to install MicroShift:
 
 This example uses `rust` to compile a WebAssembly module but you can use any
 supported language of choice. The following instructions are executed from your
-host sandbox environment i.e. outside the VM running MicroShift/cri-o/crun,
-where your `rust` toolchain is installed.
+host sandbox environment where your `rust` toolchain is installed i.e. inside
+or outside the VM running MicroShift/cri-o/crun.
 
 ### `cargo new`
 
