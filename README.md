@@ -1,6 +1,9 @@
 # wasm-demo-app
-This repository is a tutorial for setting up a WebAssembly demo application to be used within
-OpenShift, such as on the Edge using MicroShift.
+This repository is a tutorial for setting up a WebAssembly demo application to
+be executed as a container using [crun](https://github.com/containers/crun),
+[podman](https://github.com/containers/podman), and
+[MicroShift](https://github.com/openshift/microshift) (OpenShift optimized for
+edge computing).
 
 ## Install Dependencies
 Before proceeding with this tutorial, you'll need to install various
