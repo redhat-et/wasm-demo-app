@@ -5,6 +5,11 @@ be executed as a container using [crun](https://github.com/containers/crun),
 [MicroShift](https://github.com/openshift/microshift) (OpenShift optimized for
 edge computing).
 
+This tutorial focuses on using Vagrant with Fedora. At the time of this
+writing, MicroShift is not currently supported on the latest versions of Fedora
+(F37). Therefore, if you'd like to try this tutorial please note that the
+MicroShift portion is no longer functional.
+
 ## Install Dependencies
 Before proceeding with this tutorial, you'll need to install various
 dependencies listed below. We list out all of the steps but leave it up to the
