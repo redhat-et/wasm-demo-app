@@ -18,8 +18,8 @@ environment and a deployment environment, or they could certainly be the same
 system.
 
 Additionally, not all installation steps are required below. It really depends
-on which deployment examples you're interested in e.g. wasmtime, crun, podman,
-crio, MicroShift or all of the above. So you may want to look at the
+on which deployment examples you're interested in e.g. `wasmtime`, `crun`,
+`podman`, `cri-o`, `MicroShift` or all of the above. So you may want to look at the
 deployment options below in [Run WASM App](#run-wasm-app) to determine which
 dependencies you should install.
 
@@ -44,16 +44,12 @@ a Fedora 36 virtual machine quickly and easily.
     vagrant up
     ```
 
-### Install `rust` toolchain
+### Install `rust` toolchain and add the `wasm32-wasi` target
+
+Run these commands on your development machine:
 
 ```shell
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-```
-
-### Add `wasm32-wasi` `rust` target
-
-```shell
-rustup target add wasm32-wasi
 ```
 
 ### Install `wasmtime` runtime
@@ -62,17 +58,17 @@ rustup target add wasm32-wasi
 curl https://wasmtime.dev/install.sh -sSf | bash
 ```
 
-### Install and run `crun` with the `wasmtime` C shared library
+### Install `crun` with the `wasmtime` C shared library
 
-The following steps should be executed on your Fedora 36 installation VM or
-baremetal.
+The following steps should be executed on your Fedora 36 virtual machine
+installation.
 
 1. If using `vagrant` simply run:
     ```shell
     vagrant ssh
     ```
 
-1. You'll need to enable both of these copr repos:
+1. You'll need to enable this Copr repo:
     ```shell
     sudo dnf copr enable -y copr.fedorainfracloud.org/rhcontainerbot/podman-next
     ```
@@ -83,27 +79,38 @@ baremetal.
     ```shell
     sudo dnf install -y crun wasmtime-c-api
     ```
-1. Verify a `crun` is installed that enables support for `wasmtime`:
+1. Verify `crun` is installed that enables support for `wasmtime`:
     ```shell
     crun --version | grep wasmtime
     ```
 
-**NOTE**: Currently the way to do this is via copr repositories until we have
+**NOTE**: Currently the way to do this is via Copr repositories until we have
 official releases of these RPMs.
 
-
-### Install `podman` and `buildah`
+### Install `podman`
 
 You'll still need `crun` in order to execute the wasm app with `podman`, so be
-sure to install the `crun` dependency as well.
+sure to install the `crun` dependency in the previous step as well. Then run
+the following command from your Fedora virtual machine:
 
 ```shell
-sudo dnf install -y podman buildah
+sudo dnf install -y podman
+```
+
+### Install `buildah`
+
+On your development system or wherever you will be buildling the OCI container
+image with `buildah`, run the following command:
+
+```shell
+sudo dnf install -y buildah
 ```
 
 ### Install and run `crio`
 
-1. Execute the following commands to install cri-o and verify it is enabled and
+Run through the following steps on your Fedora virtual machine:
+
+1. Execute the following commands to install `cri-o` and verify it is enabled and
 running:
     ```shell
     sudo dnf module enable -y cri-o:1.21
@@ -112,21 +119,22 @@ running:
     sudo systemctl status crio
     ```
 
-1. Enable cri-o to use crun:
+1. Enable `cri-o` to use `crun`:
     ```shell
     sudo sed -i '/^\[crio.runtime\]/a default_runtime = "crun"' /etc/crio/crio.conf
     sudo mkdir /etc/crio/crio.conf.d/
     sudo sh -c "echo -e '# Add crun runtime here\n[crio.runtime.runtimes.crun]\nruntime_path = \"/usr/bin/crun\"\nruntime_type = \"oci\"\nruntime_root = \"/run/crun\"' > /etc/crio/crio.conf.d/01-crio-crun.conf"
     ```
 
-1. Restart cri-o to make sure it picks up the new config:
+1. Restart `cri-o` to make sure it picks up the new config:
     ```shell
     sudo systemctl restart crio
     ```
 
 ### Install MicroShift
 
-Follow the below instructions to install MicroShift:
+From your Fedora virtual machine, follow the below instructions to install MicroShift.
+
 1. Install and deploy MicroShift. For this step, normally you would be able to
    follow the instructions directly from the [MicroShift
    website](https://microshift.io/docs/getting-started/#deploying-microshift),
@@ -160,8 +168,7 @@ Follow the below instructions to install MicroShift:
 
 This example uses `rust` to compile a WebAssembly module but you can use any
 supported language of choice. The following instructions are executed from your
-host sandbox environment where your `rust` toolchain is installed i.e. inside
-or outside the VM running MicroShift/cri-o/crun.
+host development system where your `rust` toolchain is installed.
 
 ### `cargo new`
 
@@ -184,12 +191,12 @@ cargo build --target wasm32-wasi
 ## Build and Push WASM App Container Image
 
 Use the `Containerfile` provided in this repo to build a container image for
-this wasm demo app workload using the below instruction.
+this wasm demo app workload using the below instructions.
 
 ### Build Container Image
 
 ```shell
-buildah build --annotation "run.oci.handler=wasmtime" -t <registry>/<repo>/wasm-demo-app .
+buildah build --annotation "run.oci.handler=wasmtime" --platform wasi/wasm -t <registry>/<repo>/wasm-demo-app .
 ```
 
 ### Push Container Image
@@ -266,10 +273,10 @@ crun delete wasm-demo-app
 ### Using `podman`
 
 You'll need to have `crun` installed to execute the wasm app with `podman`, so
-be sure you install that first.
+be sure you install that first if you haven't already.
 
 ```shell
-podman run wasm-demo-app
+podman run --platform=wasi/wasm <registry>/<repo>/wasm-demo-app
 ```
 
 ### Using MicroShift
@@ -279,7 +286,7 @@ MicroShift. If you're using a single system for the development, building and
 deployment of this example app, then execute the following:
 
 ```shell
-oc apply -f wasm-pod.yaml
+sed 's|module.wasm.image/variant: compat|run.oci.handler: wasmtime|' wasm-pod.yaml | oc apply -f -
 oc get pods
 oc logs -f pod-with-wasm-workload
 ```
