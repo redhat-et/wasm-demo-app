@@ -5,6 +5,7 @@ metadata:
   annotations:
     module.wasm.image/variant: compat
 spec:
+  restartPolicy: Never
   containers:
   - name: wasm-demo-app
     image: quay.io/ifont/wasm-demo-app
