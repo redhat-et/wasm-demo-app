@@ -5,7 +5,18 @@ metadata:
   annotations:
     module.wasm.image/variant: compat
 spec:
+  restartPolicy: Never
   containers:
   - name: wasm-demo-app
     image: quay.io/ifont/wasm-demo-app
     imagePullPolicy: Always
+    securityContext:
+      allowPrivilegeEscalation: false
+      runAsNonRoot: true
+      runAsUser: 1000
+      seccompProfile:
+        type: RuntimeDefault
+      capabilities:
+        drop:
+          - "ALL"
+
